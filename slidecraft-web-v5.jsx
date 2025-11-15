@@ -290,7 +290,9 @@ Use the v5 Pro presentation generator with template_library. Populate the templa
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                   <div>
-                    <label htmlFor="slides-input" className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label htmlFor="slides-input" className={`block text-sm font-semibold mb-2 ${
+                      darkMode ? 'text-gray-200' : 'text-gray-700'
+                    }`}>
                       Slides
                     </label>
                     <input
@@ -300,13 +302,19 @@ Use the v5 Pro presentation generator with template_library. Populate the templa
                       onChange={(e) => setFormData({...formData, slides: e.target.value})}
                       min="3"
                       max="20"
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg"
+                      className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded-lg ${
+                        darkMode
+                          ? 'bg-gray-700 border-gray-600 text-white'
+                          : 'bg-white border-gray-300 text-gray-900'
+                      }`}
                       aria-label="Number of slides"
                     />
                   </div>
                   <div>
-                    <label htmlFor="company-input" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Company <span className="text-gray-400 font-normal">(optional)</span>
+                    <label htmlFor="company-input" className={`block text-sm font-semibold mb-2 ${
+                      darkMode ? 'text-gray-200' : 'text-gray-700'
+                    }`}>
+                      Company <span className={darkMode ? 'text-gray-400' : 'text-gray-500'} style={{fontWeight: 'normal'}}>(optional)</span>
                     </label>
                     <input
                       id="company-input"
@@ -314,12 +322,18 @@ Use the v5 Pro presentation generator with template_library. Populate the templa
                       value={formData.company_name}
                       onChange={(e) => setFormData({...formData, company_name: e.target.value})}
                       placeholder="Your company"
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg"
+                      className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded-lg ${
+                        darkMode
+                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                          : 'bg-white border-gray-300 text-gray-900'
+                      }`}
                     />
                   </div>
                   <div>
-                    <label htmlFor="presenter-input" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Presenter <span className="text-gray-400 font-normal">(optional)</span>
+                    <label htmlFor="presenter-input" className={`block text-sm font-semibold mb-2 ${
+                      darkMode ? 'text-gray-200' : 'text-gray-700'
+                    }`}>
+                      Presenter <span className={darkMode ? 'text-gray-400' : 'text-gray-500'} style={{fontWeight: 'normal'}}>(optional)</span>
                     </label>
                     <input
                       id="presenter-input"
@@ -327,27 +341,35 @@ Use the v5 Pro presentation generator with template_library. Populate the templa
                       value={formData.presenter}
                       onChange={(e) => setFormData({...formData, presenter: e.target.value})}
                       placeholder="Your name"
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg"
+                      className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded-lg ${
+                        darkMode
+                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                          : 'bg-white border-gray-300 text-gray-900'
+                      }`}
                     />
                   </div>
                 </div>
 
                 {/* Additional Context - Collapsible */}
-                <div className="border-t pt-4">
+                <div className={`border-t pt-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                   <button
                     onClick={() => setShowContext(!showContext)}
-                    className="flex items-center justify-between w-full text-sm font-semibold text-gray-700 mb-2"
+                    className={`flex items-center justify-between w-full text-sm font-semibold mb-2 ${
+                      darkMode ? 'text-gray-200' : 'text-gray-700'
+                    }`}
                     aria-expanded={showContext}
                   >
                     <span>
-                      💬 Additional Context <span className="text-gray-400 font-normal">(optional but helpful)</span>
+                      💬 Additional Context <span className={`font-normal ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>(optional but helpful)</span>
                     </span>
                     <ChevronRight className={`w-5 h-5 transition-transform ${showContext ? 'rotate-90' : ''}`} />
                   </button>
-                  
+
                   {showContext && (
                     <div className="mt-3">
-                      <label htmlFor="context-input" className="block text-sm text-gray-600 mb-2">
+                      <label htmlFor="context-input" className={`block text-sm mb-2 ${
+                        darkMode ? 'text-gray-300' : 'text-gray-600'
+                      }`}>
                         Add meeting agenda, notes, or any context to help generate better slides
                       </label>
                       <textarea
@@ -362,9 +384,13 @@ Use the v5 Pro presentation generator with template_library. Populate the templa
 
 Or paste notes, outlines, bullet points, etc."
                         rows="6"
-                        className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-y"
+                        className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-y ${
+                          darkMode
+                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                            : 'bg-white border-gray-300 text-gray-900'
+                        }`}
                       />
-                      <p className="mt-2 text-xs text-gray-500">
+                      <p className={`mt-2 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                         💡 Tip: Paste your meeting agenda, outline, or notes here. The AI will use this to create more relevant slides.
                       </p>
                     </div>
@@ -377,23 +403,33 @@ Or paste notes, outlines, bullet points, etc."
             {activeTab === 'template' && (
               <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  <label className={`block text-sm font-semibold mb-3 ${
+                    darkMode ? 'text-gray-200' : 'text-gray-700'
+                  }`}>
                     Choose a Template
                   </label>
-                  
+
                   {/* Tyler Templates Notice */}
-                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
-                    <p className="text-blue-800 font-semibold mb-1">💼 Tyler Custom Templates</p>
-                    <p className="text-blue-700">
-                      Upload your Tyler .pptx templates to the project to use them here. 
+                  <div className={`mb-4 p-3 border rounded-lg text-sm ${
+                    darkMode
+                      ? 'bg-blue-900/30 border-blue-700'
+                      : 'bg-blue-50 border-blue-200'
+                  }`}>
+                    <p className={`font-semibold mb-1 ${
+                      darkMode ? 'text-blue-300' : 'text-blue-800'
+                    }`}>💼 Tyler Custom Templates</p>
+                    <p className={darkMode ? 'text-blue-200' : 'text-blue-700'}>
+                      Upload your Tyler .pptx templates to the project to use them here.
                       They'll appear in the "Tyler" category with your brand colors and layouts.
                     </p>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {Object.entries(templates).map(([category, temps]) => (
                       <div key={category}>
-                        <h3 className="text-xs sm:text-sm font-semibold text-gray-500 uppercase mb-2">
+                        <h3 className={`text-xs sm:text-sm font-semibold uppercase mb-2 ${
+                          darkMode ? 'text-gray-400' : 'text-gray-500'
+                        }`}>
                           {category}
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
@@ -403,13 +439,21 @@ Or paste notes, outlines, bullet points, etc."
                               onClick={() => setSelectedTemplate(template.id)}
                               className={`p-3 sm:p-4 text-left rounded-lg border-2 transition-all ${
                                 selectedTemplate === template.id
-                                  ? 'border-indigo-600 bg-indigo-50'
-                                  : 'border-gray-200 hover:border-gray-300'
+                                  ? darkMode
+                                    ? 'border-indigo-500 bg-indigo-900/30'
+                                    : 'border-indigo-600 bg-indigo-50'
+                                  : darkMode
+                                    ? 'border-gray-700 hover:border-gray-600 bg-gray-700/50'
+                                    : 'border-gray-200 hover:border-gray-300'
                               }`}
                               aria-pressed={selectedTemplate === template.id}
                             >
-                              <div className="font-semibold text-sm sm:text-base text-gray-900">{template.name}</div>
-                              <div className="text-xs sm:text-sm text-gray-600">{template.desc}</div>
+                              <div className={`font-semibold text-sm sm:text-base ${
+                                darkMode ? 'text-white' : 'text-gray-900'
+                              }`}>{template.name}</div>
+                              <div className={`text-xs sm:text-sm ${
+                                darkMode ? 'text-gray-400' : 'text-gray-600'
+                              }`}>{template.desc}</div>
                             </button>
                           ))}
                         </div>
@@ -420,14 +464,20 @@ Or paste notes, outlines, bullet points, etc."
 
                 {/* Template Fields */}
                 {selectedTemplateObj && (
-                  <div className="border-t pt-4 sm:pt-6">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                  <div className={`border-t pt-4 sm:pt-6 ${
+                    darkMode ? 'border-gray-700' : 'border-gray-200'
+                  }`}>
+                    <h3 className={`text-sm font-semibold mb-3 ${
+                      darkMode ? 'text-gray-200' : 'text-gray-700'
+                    }`}>
                       Fill in the details
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       {selectedTemplateObj.fields.map(field => (
                         <div key={field}>
-                          <label htmlFor={`field-${field}`} className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">
+                          <label htmlFor={`field-${field}`} className={`block text-xs sm:text-sm font-medium mb-1 ${
+                            darkMode ? 'text-gray-300' : 'text-gray-600'
+                          }`}>
                             {field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                           </label>
                           <input
@@ -436,7 +486,11 @@ Or paste notes, outlines, bullet points, etc."
                             value={templateData[field] || ''}
                             onChange={(e) => setTemplateData({...templateData, [field]: e.target.value})}
                             placeholder={`Enter ${field.replace(/_/g, ' ')}`}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            className={`w-full px-3 py-2 border rounded-lg text-sm ${
+                              darkMode
+                                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                                : 'bg-white border-gray-300 text-gray-900'
+                            }`}
                           />
                         </div>
                       ))}
@@ -447,10 +501,14 @@ Or paste notes, outlines, bullet points, etc."
             )}
 
             {/* Theme Selection */}
-            <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t">
+            <div className={`mt-6 sm:mt-8 pt-4 sm:pt-6 border-t ${
+              darkMode ? 'border-gray-700' : 'border-gray-200'
+            }`}>
               <button
                 onClick={() => setShowThemes(!showThemes)}
-                className="flex items-center justify-between w-full sm:w-auto text-sm font-semibold text-gray-700 mb-3"
+                className={`flex items-center justify-between w-full sm:w-auto text-sm font-semibold mb-3 ${
+                  darkMode ? 'text-gray-200' : 'text-gray-700'
+                }`}
                 aria-expanded={showThemes}
                 aria-controls="theme-selector"
               >
@@ -460,8 +518,8 @@ Or paste notes, outlines, bullet points, etc."
                 </span>
                 <ChevronRight className={`w-5 h-5 sm:hidden transition-transform ${showThemes ? 'rotate-90' : ''}`} />
               </button>
-              
-              <div 
+
+              <div
                 id="theme-selector"
                 className={`${showThemes ? 'block' : 'hidden sm:block'} grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3`}
               >
@@ -474,19 +532,27 @@ Or paste notes, outlines, bullet points, etc."
                     }}
                     className={`p-2 sm:p-3 rounded-lg border-2 transition-all ${
                       selectedTheme === theme.id
-                        ? 'border-indigo-600 ring-2 ring-indigo-200'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? darkMode
+                          ? 'border-indigo-500 ring-2 ring-indigo-500/30'
+                          : 'border-indigo-600 ring-2 ring-indigo-200'
+                        : darkMode
+                          ? 'border-gray-700 hover:border-gray-600'
+                          : 'border-gray-200 hover:border-gray-300'
                     }`}
                     aria-pressed={selectedTheme === theme.id}
                     aria-label={`Select ${theme.name} theme`}
                   >
-                    <div 
-                      className="w-full h-6 sm:h-8 rounded mb-1 sm:mb-2" 
+                    <div
+                      className="w-full h-6 sm:h-8 rounded mb-1 sm:mb-2"
                       style={{backgroundColor: theme.color}}
                       aria-hidden="true"
                     />
-                    <div className="text-xs font-semibold text-gray-900 truncate">{theme.name}</div>
-                    <div className="text-xs text-gray-500 truncate hidden sm:block">{theme.desc}</div>
+                    <div className={`text-xs font-semibold truncate ${
+                      darkMode ? 'text-white' : 'text-gray-900'
+                    }`}>{theme.name}</div>
+                    <div className={`text-xs truncate hidden sm:block ${
+                      darkMode ? 'text-gray-400' : 'text-gray-500'
+                    }`}>{theme.desc}</div>
                   </button>
                 ))}
               </div>
@@ -517,29 +583,51 @@ Or paste notes, outlines, bullet points, etc."
 
         {/* Result */}
         {result && (
-          <div className={`mt-6 p-6 rounded-xl ${result.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+          <div className={`mt-6 p-6 rounded-xl border ${
+            result.success
+              ? darkMode
+                ? 'bg-green-900/30 border-green-700'
+                : 'bg-green-50 border-green-200'
+              : darkMode
+                ? 'bg-red-900/30 border-red-700'
+                : 'bg-red-50 border-red-200'
+          }`}>
             {result.success ? (
               <div>
-                <div className="flex items-center gap-2 text-green-800 font-semibold mb-3">
+                <div className={`flex items-center gap-2 font-semibold mb-3 ${
+                  darkMode ? 'text-green-300' : 'text-green-800'
+                }`}>
                   <FileDown className="w-5 h-5" />
                   Presentation Created!
                 </div>
-                <div className="text-sm text-green-700 mb-4">
+                <div className={`text-sm mb-4 ${
+                  darkMode ? 'text-green-200' : 'text-green-700'
+                }`}>
                   <strong>Theme:</strong> {result.theme}
                   {result.template && <> • <strong>Template:</strong> {result.template}</>}
                 </div>
-                <div className="bg-white p-4 rounded-lg border border-green-200 text-sm text-gray-700 whitespace-pre-wrap">
+                <div className={`p-4 rounded-lg border text-sm whitespace-pre-wrap ${
+                  darkMode
+                    ? 'bg-gray-800 border-green-700 text-gray-200'
+                    : 'bg-white border-green-200 text-gray-700'
+                }`}>
                   {result.message}
                 </div>
-                <div className="mt-4 text-xs text-green-600">
-                  💡 Tip: Claude will provide you with the presentation file or code to generate it. 
+                <div className={`mt-4 text-xs ${
+                  darkMode ? 'text-green-300' : 'text-green-600'
+                }`}>
+                  💡 Tip: Claude will provide you with the presentation file or code to generate it.
                   Check the response above for download links or instructions.
                 </div>
               </div>
             ) : (
               <div>
-                <div className="text-red-800 font-semibold mb-2">Error</div>
-                <div className="text-sm text-red-700">{result.error}</div>
+                <div className={`font-semibold mb-2 ${
+                  darkMode ? 'text-red-300' : 'text-red-800'
+                }`}>Error</div>
+                <div className={`text-sm ${
+                  darkMode ? 'text-red-200' : 'text-red-700'
+                }`}>{result.error}</div>
               </div>
             )}
           </div>
