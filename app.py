@@ -21,32 +21,80 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS
-st.markdown("""
+# Initialize session state for dark mode
+if 'dark_mode' not in st.session_state:
+    st.session_state.dark_mode = False
+
+# Custom CSS with dark mode support
+if st.session_state.dark_mode:
+    # Dark mode colors
+    bg_color = "#1a1a1a"
+    text_color = "#e0e0e0"
+    tagline_color = "#b0b0b0"
+    card_border = "#404040"
+    card_hover = "#667eea"
+    card_bg = "#2a2a2a"
+else:
+    # Light mode colors
+    bg_color = "#ffffff"
+    text_color = "#000000"
+    tagline_color = "#666666"
+    card_border = "#e0e0e0"
+    card_hover = "#667eea"
+    card_bg = "#ffffff"
+
+st.markdown(f"""
 <style>
-    .main-header {
+    /* Main background */
+    .stApp {{
+        background-color: {bg_color};
+        color: {text_color};
+    }}
+
+    /* Sidebar */
+    [data-testid="stSidebar"] {{
+        background-color: {bg_color};
+    }}
+
+    .main-header {{
         font-size: 3rem;
         font-weight: bold;
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin-bottom: 0.5rem;
-    }
-    .tagline {
+    }}
+    .tagline {{
         font-size: 1.2rem;
-        color: #666;
+        color: {tagline_color};
         margin-bottom: 2rem;
-    }
-    .theme-card {
+    }}
+    .theme-card {{
         padding: 1rem;
         border-radius: 8px;
-        border: 2px solid #e0e0e0;
+        border: 2px solid {card_border};
         margin: 0.5rem 0;
-    }
-    .theme-card:hover {
-        border-color: #667eea;
+        background-color: {card_bg};
+    }}
+    .theme-card:hover {{
+        border-color: {card_hover};
         box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
-    }
+    }}
+
+    /* Input fields in dark mode */
+    .stTextInput > div > div > input,
+    .stTextArea > div > div > textarea,
+    .stNumberInput > div > div > input {{
+        background-color: {card_bg};
+        color: {text_color};
+        border-color: {card_border};
+    }}
+
+    /* Selectbox in dark mode */
+    .stSelectbox > div > div {{
+        background-color: {card_bg};
+        color: {text_color};
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -57,14 +105,25 @@ st.markdown('<div class="tagline">Presentations that inspire, in seconds</div>',
 # Sidebar
 with st.sidebar:
     st.header("⚙️ Settings")
-    
+
+    # Dark mode toggle
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.write("**Theme**")
+    with col2:
+        if st.button("🌙" if not st.session_state.dark_mode else "☀️", key="dark_mode_toggle"):
+            st.session_state.dark_mode = not st.session_state.dark_mode
+            st.rerun()
+
+    st.divider()
+
     # Mode selection
     mode = st.radio(
         "Creation Mode",
         ["Quick Create", "Template-Based"],
         help="Quick Create for custom topics, Template-Based for structured presentations"
     )
-    
+
     st.divider()
     
     # Theme selection
@@ -144,10 +203,17 @@ if mode == "Quick Create":
     
     if st.button("🎨 Generate Presentation", type="primary", use_container_width=True):
         if not topic:
-            st.error("Please enter a presentation topic")
+            st.error("⚠️ Please enter a presentation topic")
+        elif num_slides < 3 or num_slides > 30:
+            st.error("⚠️ Number of slides must be between 3 and 30")
         else:
             with st.spinner("Creating your presentation..."):
                 try:
+                    # Validate topic length
+                    if len(topic) > 200:
+                        st.warning("Topic is very long. Truncating to 200 characters.")
+                        topic = topic[:200]
+
                     # Build slides content
                     slides_content = [
                         {'type': 'title', 'title': topic, 'subtitle': f'{company_name}\n{presenter}' if company_name or presenter else ''},
@@ -158,7 +224,7 @@ if mode == "Quick Create":
                             'Next Steps'
                         ]}
                     ]
-                    
+
                     # Add content slides based on context if provided
                     if context:
                         # Split context into sections
@@ -181,37 +247,45 @@ if mode == "Quick Create":
                                     'Important takeaway'
                                 ]
                             })
-                    
+
                     slides_content.append({
                         'type': 'section',
                         'title': 'Thank You',
                         'section_number': ''
                     })
-                    
+
                     # Create presentation
                     config = {
                         'theme': selected_theme,
                         'slides_content': slides_content
                     }
-                    
+
                     result = create_presentation(config)
-                    
+
                     st.success("✅ Presentation created successfully!")
-                    
+
                     # Download button
-                    with open(result['filepath'], 'rb') as f:
-                        st.download_button(
-                            label="📥 Download Presentation",
-                            data=f,
-                            file_name=f"slidecraft_{topic.lower().replace(' ', '_')[:30]}_{datetime.now().strftime('%Y%m%d')}.pptx",
-                            mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                            type="primary"
-                        )
-                    
-                    st.info(f"💡 **Tip:** Open in PowerPoint or Google Slides. Contains {len(slides_content)} slides with speaker notes.")
-                    
+                    if os.path.exists(result['filepath']):
+                        with open(result['filepath'], 'rb') as f:
+                            st.download_button(
+                                label="📥 Download Presentation",
+                                data=f,
+                                file_name=f"slidecraft_{topic.lower().replace(' ', '_')[:30]}_{datetime.now().strftime('%Y%m%d')}.pptx",
+                                mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                                type="primary"
+                            )
+
+                        st.info(f"💡 **Tip:** Open in PowerPoint or Google Slides. Contains {len(slides_content)} slides with speaker notes.")
+                    else:
+                        st.error("Presentation file not found. Please try again.")
+
+                except ValueError as ve:
+                    st.error(f"⚠️ Validation error: {str(ve)}")
+                except IOError as ioe:
+                    st.error(f"⚠️ File error: {str(ioe)}. Check that you have write permissions.")
                 except Exception as e:
-                    st.error(f"Error creating presentation: {str(e)}")
+                    st.error(f"❌ Error creating presentation: {str(e)}")
+                    st.exception(e)
 
 else:  # Template-Based
     st.header("📋 Template-Based Creation")
@@ -309,31 +383,37 @@ else:  # Template-Based
         if st.button("🎨 Generate from Template", type="primary", use_container_width=True):
             # Check if required fields are filled
             missing_fields = [f for f, v in template_data.items() if not v]
-            
+
             if missing_fields:
-                st.warning(f"Please fill in all fields. Missing: {', '.join([f.replace('_', ' ').title() for f in missing_fields[:3]])}")
+                st.warning(f"⚠️ Please fill in all fields. Missing: {', '.join([f.replace('_', ' ').title() for f in missing_fields[:3]])}")
             else:
                 with st.spinner("Creating your presentation..."):
                     try:
+                        # Validate field lengths
+                        for field, value in template_data.items():
+                            if len(value) > 500:
+                                st.warning(f"Field '{field}' is very long. Truncating to 500 characters.")
+                                template_data[field] = value[:500]
+
                         # Populate template
                         slides_content = []
                         for slide in template['slides']:
                             slide_copy = slide.copy()
-                            
+
                             # Replace placeholders in title
                             if 'title' in slide_copy:
                                 for field, value in template_data.items():
                                     slide_copy['title'] = slide_copy['title'].replace(f'{{{field}}}', value)
-                            
+
                             # Replace in subtitle
                             if 'subtitle' in slide_copy:
                                 for field, value in template_data.items():
                                     slide_copy['subtitle'] = slide_copy['subtitle'].replace(f'{{{field}}}', value)
-                            
+
                             # Replace in bullets
                             if 'bullets' in slide_copy:
                                 slide_copy['bullets'] = [
-                                    bullet.replace(f'{{{field}}}', value) 
+                                    bullet.replace(f'{{{field}}}', value)
                                     for bullet in slide_copy['bullets']
                                     for field, value in [list(template_data.items())[0]]  # Trick to get all items
                                 ]
@@ -344,7 +424,7 @@ else:  # Template-Based
                                         bullet = bullet.replace(f'{{{field}}}', value)
                                     new_bullets.append(bullet)
                                 slide_copy['bullets'] = new_bullets
-                            
+
                             # Replace in two-column items
                             if 'left_items' in slide_copy:
                                 new_left = []
@@ -353,7 +433,7 @@ else:  # Template-Based
                                         item = item.replace(f'{{{field}}}', value)
                                     new_left.append(item)
                                 slide_copy['left_items'] = new_left
-                            
+
                             if 'right_items' in slide_copy:
                                 new_right = []
                                 for item in slide['right_items']:
@@ -361,33 +441,40 @@ else:  # Template-Based
                                         item = item.replace(f'{{{field}}}', value)
                                     new_right.append(item)
                                 slide_copy['right_items'] = new_right
-                            
+
                             slides_content.append(slide_copy)
-                        
+
                         # Create presentation
                         config = {
                             'theme': template.get('theme', selected_theme),
                             'slides_content': slides_content
                         }
-                        
+
                         result = create_presentation(config)
-                        
+
                         st.success("✅ Presentation created successfully!")
-                        
+
                         # Download button
-                        with open(result['filepath'], 'rb') as f:
-                            st.download_button(
-                                label="📥 Download Presentation",
-                                data=f,
-                                file_name=f"slidecraft_{template_id}_{datetime.now().strftime('%Y%m%d')}.pptx",
-                                mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                                type="primary"
-                            )
-                        
-                        st.info(f"💡 **Tip:** Contains {len(slides_content)} slides with speaker notes. Theme: {template.get('theme', selected_theme)}")
-                        
+                        if os.path.exists(result['filepath']):
+                            with open(result['filepath'], 'rb') as f:
+                                st.download_button(
+                                    label="📥 Download Presentation",
+                                    data=f,
+                                    file_name=f"slidecraft_{template_id}_{datetime.now().strftime('%Y%m%d')}.pptx",
+                                    mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                                    type="primary"
+                                )
+
+                            st.info(f"💡 **Tip:** Contains {len(slides_content)} slides with speaker notes. Theme: {template.get('theme', selected_theme)}")
+                        else:
+                            st.error("Presentation file not found. Please try again.")
+
+                    except ValueError as ve:
+                        st.error(f"⚠️ Validation error: {str(ve)}")
+                    except IOError as ioe:
+                        st.error(f"⚠️ File error: {str(ioe)}. Check that you have write permissions.")
                     except Exception as e:
-                        st.error(f"Error creating presentation: {str(e)}")
+                        st.error(f"❌ Error creating presentation: {str(e)}")
                         st.exception(e)
 
 # Footer
