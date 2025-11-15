@@ -14,9 +14,11 @@ from ai_generator import generate_with_ai
 import os
 from datetime import datetime
 from dotenv import load_dotenv
+from pathlib import Path
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from .env file in the same directory as this script
+env_path = Path(__file__).parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 # Page config
 st.set_page_config(
@@ -59,6 +61,26 @@ st.markdown(f"""
     /* Sidebar */
     [data-testid="stSidebar"] {{
         background-color: {bg_color};
+        color: {text_color};
+    }}
+
+    /* All text elements */
+    .stMarkdown, .stText {{
+        color: {text_color};
+    }}
+
+    p:not(.main-header):not(.tagline) {{
+        color: {text_color};
+    }}
+
+    /* Headers */
+    h1, h2, h3, h4, h5, h6 {{
+        color: {text_color};
+    }}
+
+    /* Labels */
+    label {{
+        color: {text_color};
     }}
 
     .main-header {{
@@ -86,7 +108,7 @@ st.markdown(f"""
         box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
     }}
 
-    /* Input fields in dark mode */
+    /* Input fields */
     .stTextInput > div > div > input,
     .stTextArea > div > div > textarea,
     .stNumberInput > div > div > input {{
@@ -95,9 +117,35 @@ st.markdown(f"""
         border-color: {card_border};
     }}
 
-    /* Selectbox in dark mode */
+    /* Selectbox */
     .stSelectbox > div > div {{
         background-color: {card_bg};
+        color: {text_color};
+    }}
+
+    /* Radio buttons */
+    .stRadio > div {{
+        color: {text_color};
+    }}
+
+    /* Buttons */
+    .stButton > button {{
+        color: {text_color};
+        border-color: {card_border};
+    }}
+
+    /* File uploader */
+    .stFileUploader {{
+        color: {text_color};
+    }}
+
+    /* Expander */
+    .streamlit-expanderHeader {{
+        color: {text_color} !important;
+    }}
+
+    /* Info, warning, success, error boxes */
+    .stAlert {{
         color: {text_color};
     }}
 </style>
@@ -230,17 +278,18 @@ Example for business:
         api_key_from_env = os.getenv('ANTHROPIC_API_KEY')
 
         if api_key_from_env:
-            st.success("✅ API key found in .env file")
+            st.success("✅ API key loaded from .env file")
+            st.caption(f"🔑 Key: {api_key_from_env[:20]}... (hidden)")
             api_key = api_key_from_env
         else:
+            st.warning("⚠️ No API key found in .env file")
+            st.caption("💡 If you just created .env, restart Streamlit with Ctrl+C then `streamlit run app.py`")
             api_key = st.text_input(
                 "Anthropic API Key *",
                 type="password",
                 placeholder="sk-ant-...",
                 help="Get your API key from https://console.anthropic.com/"
             )
-            if api_key:
-                st.caption("💡 Tip: Save your API key in a .env file to avoid entering it each time")
 
     st.divider()
 
@@ -352,38 +401,128 @@ elif mode == "Quick Create":
 
                     # Build slides content
                     slides_content = [
-                        {'type': 'title', 'title': topic, 'subtitle': f'{company_name}\n{presenter}' if company_name or presenter else ''},
-                        {'type': 'content', 'title': 'Agenda', 'bullets': [
-                            'Overview',
-                            'Key Points',
-                            'Discussion',
-                            'Next Steps'
-                        ]}
+                        {'type': 'title', 'title': topic, 'subtitle': f'{company_name}\n{presenter}' if company_name or presenter else ''}
                     ]
 
                     # Add content slides based on context if provided
                     if context:
-                        # Split context into sections
+                        # Parse context intelligently
                         lines = [l.strip() for l in context.split('\n') if l.strip()]
-                        for i in range(0, min(len(lines), num_slides - 3), 3):
+
+                        # Add agenda slide if we have enough content
+                        if len(lines) >= 3:
                             slides_content.append({
                                 'type': 'content',
-                                'title': lines[i] if i < len(lines) else f'Point {i//3 + 1}',
-                                'bullets': lines[i+1:i+4] if i+1 < len(lines) else ['Content point', 'Supporting detail', 'Key takeaway']
-                            })
-                    else:
-                        # Generic content slides
-                        for i in range(num_slides - 3):
-                            slides_content.append({
-                                'type': 'content',
-                                'title': f'Section {i+1}',
-                                'bullets': [
-                                    f'Key point about {topic}',
-                                    'Supporting detail',
-                                    'Important takeaway'
-                                ]
+                                'title': 'Overview',
+                                'bullets': lines[:min(5, len(lines))]
                             })
 
+                        # Create content slides from remaining lines
+                        remaining_lines = lines[5:] if len(lines) > 5 else lines
+                        current_slide_bullets = []
+                        current_title = None
+
+                        for line in remaining_lines:
+                            # Check if line looks like a header (short, ends with :, or is numbered)
+                            is_header = (
+                                len(line) < 50 and
+                                (line.endswith(':') or
+                                 line.startswith(tuple(f'{i}.' for i in range(1, 10))) or
+                                 line.startswith(tuple(f'{i})' for i in range(1, 10))))
+                            )
+
+                            if is_header:
+                                # Save previous slide if we have content
+                                if current_title and current_slide_bullets:
+                                    slides_content.append({
+                                        'type': 'content',
+                                        'title': current_title,
+                                        'bullets': current_slide_bullets[:6]  # Max 6 bullets
+                                    })
+
+                                # Start new slide
+                                current_title = line.rstrip(':').strip()
+                                current_slide_bullets = []
+                            else:
+                                # Add as bullet point
+                                if current_title is None:
+                                    current_title = f'Key Points'
+
+                                current_slide_bullets.append(line)
+
+                                # Create slide if we have enough bullets
+                                if len(current_slide_bullets) >= 6:
+                                    slides_content.append({
+                                        'type': 'content',
+                                        'title': current_title,
+                                        'bullets': current_slide_bullets[:6]
+                                    })
+                                    current_title = None
+                                    current_slide_bullets = []
+
+                        # Add final slide if we have remaining content
+                        if current_title and current_slide_bullets:
+                            slides_content.append({
+                                'type': 'content',
+                                'title': current_title,
+                                'bullets': current_slide_bullets[:6]
+                            })
+
+                        # Fill remaining slides if needed
+                        while len(slides_content) < num_slides - 1:
+                            slides_content.append({
+                                'type': 'content',
+                                'title': f'{topic} - Additional Points',
+                                'bullets': [
+                                    'Key insight',
+                                    'Supporting evidence',
+                                    'Practical application'
+                                ]
+                            })
+                    else:
+                        # Better generic content generation
+                        # Add agenda
+                        slides_content.append({
+                            'type': 'content',
+                            'title': 'Agenda',
+                            'bullets': [
+                                'Introduction and Overview',
+                                'Main Discussion Points',
+                                'Key Takeaways',
+                                'Questions & Next Steps'
+                            ]
+                        })
+
+                        # Add section breaks and content slides
+                        sections = [
+                            ('Introduction', ['Overview of topic', 'Background context', 'Objectives for today']),
+                            ('Main Points', ['First key concept', 'Supporting details', 'Real-world examples']),
+                            ('Deep Dive', ['Technical details', 'Data and analysis', 'Case studies']),
+                            ('Key Takeaways', ['Summary of main points', 'Action items', 'Resources and next steps'])
+                        ]
+
+                        slides_per_section = (num_slides - 2) // len(sections)
+
+                        for section_title, default_bullets in sections:
+                            if len(slides_content) >= num_slides - 1:
+                                break
+
+                            # Add section divider
+                            slides_content.append({
+                                'type': 'section',
+                                'title': section_title,
+                                'section_number': str(len([s for s in slides_content if s.get('type') == 'section']) + 1)
+                            })
+
+                            # Add content slides for this section
+                            for i in range(min(slides_per_section, num_slides - len(slides_content) - 1)):
+                                slides_content.append({
+                                    'type': 'content',
+                                    'title': f'{section_title} - Details',
+                                    'bullets': default_bullets
+                                })
+
+                    # Add closing slide
                     slides_content.append({
                         'type': 'section',
                         'title': 'Thank You',
