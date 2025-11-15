@@ -481,8 +481,8 @@ else:  # Template-Based
 st.divider()
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
-    st.markdown("""
-    <div style="text-align: center; color: #666; padding: 1rem;">
+    st.markdown(f"""
+    <div style="text-align: center; color: {tagline_color}; padding: 1rem;">
         <small>SlideCraft v5.0 • Presentations that inspire, in seconds</small><br>
         <small>11 Themes • 10 Templates • Unlimited Possibilities</small>
     </div>
