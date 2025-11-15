@@ -43,3 +43,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Environment variables (contains API keys - DO NOT COMMIT!)
+.env
