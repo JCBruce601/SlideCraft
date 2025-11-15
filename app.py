@@ -61,6 +61,26 @@ st.markdown(f"""
     /* Sidebar */
     [data-testid="stSidebar"] {{
         background-color: {bg_color};
+        color: {text_color};
+    }}
+
+    /* All text elements */
+    .stMarkdown, .stText {{
+        color: {text_color};
+    }}
+
+    p:not(.main-header):not(.tagline) {{
+        color: {text_color};
+    }}
+
+    /* Headers */
+    h1, h2, h3, h4, h5, h6 {{
+        color: {text_color};
+    }}
+
+    /* Labels */
+    label {{
+        color: {text_color};
     }}
 
     .main-header {{
@@ -88,7 +108,7 @@ st.markdown(f"""
         box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
     }}
 
-    /* Input fields in dark mode */
+    /* Input fields */
     .stTextInput > div > div > input,
     .stTextArea > div > div > textarea,
     .stNumberInput > div > div > input {{
@@ -97,9 +117,35 @@ st.markdown(f"""
         border-color: {card_border};
     }}
 
-    /* Selectbox in dark mode */
+    /* Selectbox */
     .stSelectbox > div > div {{
         background-color: {card_bg};
+        color: {text_color};
+    }}
+
+    /* Radio buttons */
+    .stRadio > div {{
+        color: {text_color};
+    }}
+
+    /* Buttons */
+    .stButton > button {{
+        color: {text_color};
+        border-color: {card_border};
+    }}
+
+    /* File uploader */
+    .stFileUploader {{
+        color: {text_color};
+    }}
+
+    /* Expander */
+    .streamlit-expanderHeader {{
+        color: {text_color} !important;
+    }}
+
+    /* Info, warning, success, error boxes */
+    .stAlert {{
         color: {text_color};
     }}
 </style>
