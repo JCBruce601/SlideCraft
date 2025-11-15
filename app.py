@@ -274,16 +274,30 @@ Example for business:
             help="Leave at 0 to let Claude decide the optimal number"
         )
 
-        # API Key input (check for .env first)
-        api_key_from_env = os.getenv('ANTHROPIC_API_KEY')
+        # API Key input (check Streamlit secrets first, then .env)
+        api_key = None
 
-        if api_key_from_env:
-            st.success("✅ API key loaded from .env file")
-            st.caption(f"🔑 Key: {api_key_from_env[:20]}... (hidden)")
-            api_key = api_key_from_env
-        else:
-            st.warning("⚠️ No API key found in .env file")
-            st.caption("💡 If you just created .env, restart Streamlit with Ctrl+C then `streamlit run app.py`")
+        # Try Streamlit secrets first (for cloud deployment)
+        try:
+            if "ANTHROPIC_API_KEY" in st.secrets:
+                api_key = st.secrets["ANTHROPIC_API_KEY"]
+                st.success("✅ API key loaded from Streamlit secrets")
+                st.caption(f"🔑 Key: {api_key[:20]}... (hidden)")
+        except:
+            pass
+
+        # Fall back to environment variable (for local development)
+        if not api_key:
+            api_key_from_env = os.getenv('ANTHROPIC_API_KEY')
+            if api_key_from_env:
+                api_key = api_key_from_env
+                st.success("✅ API key loaded from .env file")
+                st.caption(f"🔑 Key: {api_key[:20]}... (hidden)")
+
+        # If still no API key, show input field
+        if not api_key:
+            st.warning("⚠️ No API key found")
+            st.caption("💡 Add to Streamlit secrets (cloud) or .env file (local)")
             api_key = st.text_input(
                 "Anthropic API Key *",
                 type="password",
