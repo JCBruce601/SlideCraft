@@ -352,7 +352,7 @@ class TitleSlide(BaseSlide):
 
 class ContentSlide(BaseSlide):
     slide_type = 'content'
-    
+
     def _add_header(self, data):
         super()._add_header(data)
         title_box = self.slide.shapes.add_textbox(Inches(0.9), Inches(0.15), Inches(11), Inches(0.7))
@@ -362,32 +362,53 @@ class ContentSlide(BaseSlide):
         tf.paragraphs[0].font.size = Pt(44)
         tf.paragraphs[0].font.bold = True
         tf.paragraphs[0].font.color.rgb = RGBColor(255, 255, 255)
-    
+
     def _add_content(self, data):
+        # Content background with better positioning
         bg = self.slide.shapes.add_shape(
             MSO_SHAPE.ROUNDED_RECTANGLE,
-            self.layout['margins']['left'], self.layout['header_height'] + Inches(0.4),
-            self.layout['width'] - self.layout['margins']['left'] - self.layout['margins']['right'], Inches(5.6)
+            self.layout['margins']['left'], self.layout['header_height'] + Inches(0.5),
+            self.layout['width'] - self.layout['margins']['left'] - self.layout['margins']['right'], Inches(5.4)
         )
         bg.fill.solid()
         bg.fill.fore_color.rgb = self.palette['light']
         bg.line.fill.background()
-        
+
+        # Content text box with better spacing
         content_box = self.slide.shapes.add_textbox(
-            self.layout['margins']['left'] + Inches(0.4), self.layout['header_height'] + Inches(0.7),
-            self.layout['width'] - self.layout['margins']['left'] - self.layout['margins']['right'] - Inches(0.8), Inches(5)
+            self.layout['margins']['left'] + Inches(0.6), self.layout['header_height'] + Inches(0.9),
+            self.layout['width'] - self.layout['margins']['left'] - self.layout['margins']['right'] - Inches(1.2), Inches(4.8)
         )
         cf = content_box.text_frame
         cf.word_wrap = True
-        
-        for idx, bullet in enumerate(data.get('bullets', [])):
+        cf.vertical_anchor = MSO_ANCHOR.TOP
+
+        bullets = data.get('bullets', [])
+
+        # Adjust font size based on number of bullets for better fit
+        if len(bullets) <= 3:
+            bullet_size = Pt(32)
+            space_after = Pt(24)
+        elif len(bullets) <= 5:
+            bullet_size = Pt(28)
+            space_after = Pt(20)
+        else:
+            bullet_size = Pt(24)
+            space_after = Pt(16)
+
+        for idx, bullet in enumerate(bullets):
             p = cf.paragraphs[0] if idx == 0 else cf.add_paragraph()
             p.text = bullet
             p.font.name = self.fonts['body']
-            p.font.size = Pt(26)
+            p.font.size = bullet_size
             p.font.color.rgb = self.palette['text']
-            p.space_after = Pt(18)
-            p.line_spacing = self.layout['line_spacing']
+            p.space_after = space_after
+            p.line_spacing = 1.3
+            p.level = 0  # Ensure bullet level is set
+
+            # Add bullet point marker
+            if idx > 0 or len(bullets) > 1:
+                p.text = f"• {bullet}"
 
 class SectionSlide(BaseSlide):
     slide_type = 'section'
@@ -487,15 +508,17 @@ class TwoColumnSlide(BaseSlide):
         )
         lcf = left_content_box.text_frame
         lcf.word_wrap = True
+        lcf.vertical_anchor = MSO_ANCHOR.TOP
 
-        for idx, item in enumerate(data.get('left_items', [])):
+        left_items = data.get('left_items', [])
+        for idx, item in enumerate(left_items):
             p = lcf.paragraphs[0] if idx == 0 else lcf.add_paragraph()
-            p.text = item
+            p.text = f"• {item}" if len(left_items) > 1 else item
             p.font.name = self.fonts['body']
             p.font.size = Pt(24)
             p.font.color.rgb = self.palette['text']
-            p.space_after = Pt(14)
-            p.line_spacing = self.layout['line_spacing']
+            p.space_after = Pt(16)
+            p.line_spacing = 1.3
 
         # Right column content
         right_content_box = self.slide.shapes.add_textbox(
@@ -504,15 +527,17 @@ class TwoColumnSlide(BaseSlide):
         )
         rcf = right_content_box.text_frame
         rcf.word_wrap = True
+        rcf.vertical_anchor = MSO_ANCHOR.TOP
 
-        for idx, item in enumerate(data.get('right_items', [])):
+        right_items = data.get('right_items', [])
+        for idx, item in enumerate(right_items):
             p = rcf.paragraphs[0] if idx == 0 else rcf.add_paragraph()
-            p.text = item
+            p.text = f"• {item}" if len(right_items) > 1 else item
             p.font.name = self.fonts['body']
             p.font.size = Pt(24)
             p.font.color.rgb = self.palette['text']
-            p.space_after = Pt(14)
-            p.line_spacing = self.layout['line_spacing']
+            p.space_after = Pt(16)
+            p.line_spacing = 1.3
 
 class QuoteSlide(BaseSlide):
     slide_type = 'quote'
