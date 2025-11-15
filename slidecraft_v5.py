@@ -514,6 +514,155 @@ class TwoColumnSlide(BaseSlide):
             p.space_after = Pt(14)
             p.line_spacing = self.layout['line_spacing']
 
+class QuoteSlide(BaseSlide):
+    slide_type = 'quote'
+    skip_header = True
+
+    def _add_background(self):
+        # Gradient background effect with shapes
+        bg = self.slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, self.layout['width'], self.layout['height'])
+        bg.fill.solid()
+        bg.fill.fore_color.rgb = self.palette['primary']
+        bg.line.fill.background()
+
+        # Accent shape
+        accent = self.slide.shapes.add_shape(
+            MSO_SHAPE.ROUNDED_RECTANGLE,
+            Inches(0.5), Inches(0.5),
+            Inches(2), Inches(2)
+        )
+        accent.fill.solid()
+        accent.fill.fore_color.rgb = self.palette['accent']
+        accent.fill.transparency = 0.7
+        accent.line.fill.background()
+
+    def _add_content(self, data):
+        # Large quote mark or icon area
+        quote_mark = self.slide.shapes.add_textbox(Inches(1.5), Inches(1.5), Inches(1.5), Inches(1.0))
+        qm = quote_mark.text_frame
+        qm.text = '"'
+        qm.paragraphs[0].font.size = Pt(180)
+        qm.paragraphs[0].font.bold = True
+        qm.paragraphs[0].font.color.rgb = self.palette['accent_light']
+        qm.paragraphs[0].font.name = self.fonts['heading']
+
+        # Main quote text
+        quote_box = self.slide.shapes.add_textbox(Inches(2.0), Inches(2.5), Inches(9.3), Inches(3.0))
+        qt = quote_box.text_frame
+        qt.word_wrap = True
+        qt.text = data.get('quote', data.get('title', 'Quote text'))
+        qt.paragraphs[0].font.name = self.fonts['heading']
+        qt.paragraphs[0].font.size = Pt(48)
+        qt.paragraphs[0].font.color.rgb = RGBColor(255, 255, 255)
+        qt.paragraphs[0].alignment = PP_ALIGN.LEFT
+        qt.paragraphs[0].line_spacing = 1.4
+
+        # Attribution
+        if data.get('attribution'):
+            attr_box = self.slide.shapes.add_textbox(Inches(2.0), Inches(5.8), Inches(9.3), Inches(0.8))
+            attr = attr_box.text_frame
+            attr.text = f"— {data['attribution']}"
+            attr.paragraphs[0].font.name = self.fonts['body']
+            attr.paragraphs[0].font.size = Pt(28)
+            attr.paragraphs[0].font.color.rgb = self.palette['accent_light']
+            attr.paragraphs[0].font.italic = True
+
+class StatsSlide(BaseSlide):
+    slide_type = 'stats'
+    skip_header = True
+
+    def _add_background(self):
+        bg = self.slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, self.layout['width'], self.layout['height'])
+        bg.fill.solid()
+        bg.fill.fore_color.rgb = RGBColor(255, 255, 255)
+        bg.line.fill.background()
+
+        # Colored accent bar
+        accent_bar = self.slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE,
+            0, 0,
+            self.layout['width'], Inches(1.5)
+        )
+        accent_bar.fill.solid()
+        accent_bar.fill.fore_color.rgb = self.palette['primary']
+        accent_bar.line.fill.background()
+
+    def _add_content(self, data):
+        # Title at top
+        title_box = self.slide.shapes.add_textbox(Inches(1.0), Inches(0.3), Inches(11.3), Inches(1.0))
+        tf = title_box.text_frame
+        tf.text = data.get('title', 'Key Statistics')
+        tf.paragraphs[0].font.name = self.fonts['heading']
+        tf.paragraphs[0].font.size = Pt(52)
+        tf.paragraphs[0].font.bold = True
+        tf.paragraphs[0].font.color.rgb = RGBColor(255, 255, 255)
+        tf.paragraphs[0].alignment = PP_ALIGN.CENTER
+
+        # Stats items (up to 3)
+        stats = data.get('stats', [])
+        if not stats and data.get('bullets'):
+            # Convert bullets to stats if needed
+            stats = data['bullets'][:3]
+
+        num_stats = min(len(stats), 3)
+        stat_width = Inches(11.3 / num_stats)
+
+        for idx, stat in enumerate(stats[:3]):
+            x_pos = Inches(1.0) + (stat_width * idx)
+
+            # Background card
+            card = self.slide.shapes.add_shape(
+                MSO_SHAPE.ROUNDED_RECTANGLE,
+                x_pos + Inches(0.2), Inches(2.5),
+                stat_width - Inches(0.4), Inches(3.5)
+            )
+            card.fill.solid()
+            card.fill.fore_color.rgb = self.palette['light']
+            card.line.color.rgb = self.palette['accent']
+            card.line.width = Pt(3)
+
+            # Parse stat (try to extract number and label)
+            parts = stat.split(':', 1) if ':' in stat else [stat, '']
+            if len(parts) == 2:
+                number_text = parts[0].strip()
+                label_text = parts[1].strip()
+            else:
+                # Try to find first number
+                import re
+                numbers = re.findall(r'[\d,\.]+[%]?', stat)
+                if numbers:
+                    number_text = numbers[0]
+                    label_text = stat.replace(number_text, '').strip()
+                else:
+                    number_text = stat[:20]
+                    label_text = stat[20:]
+
+            # Big number
+            num_box = self.slide.shapes.add_textbox(
+                x_pos + Inches(0.3), Inches(3.0),
+                stat_width - Inches(0.6), Inches(1.5)
+            )
+            num_tf = num_box.text_frame
+            num_tf.text = number_text
+            num_tf.paragraphs[0].font.name = self.fonts['heading']
+            num_tf.paragraphs[0].font.size = Pt(72)
+            num_tf.paragraphs[0].font.bold = True
+            num_tf.paragraphs[0].font.color.rgb = self.palette['primary']
+            num_tf.paragraphs[0].alignment = PP_ALIGN.CENTER
+
+            # Label
+            label_box = self.slide.shapes.add_textbox(
+                x_pos + Inches(0.3), Inches(4.7),
+                stat_width - Inches(0.6), Inches(1.0)
+            )
+            label_tf = label_box.text_frame
+            label_tf.word_wrap = True
+            label_tf.text = label_text
+            label_tf.paragraphs[0].font.name = self.fonts['body']
+            label_tf.paragraphs[0].font.size = Pt(20)
+            label_tf.paragraphs[0].font.color.rgb = self.palette['text']
+            label_tf.paragraphs[0].alignment = PP_ALIGN.CENTER
+
 # ============================================================================
 # SLIDE FACTORY
 # ============================================================================
@@ -523,7 +672,9 @@ class SlideFactory:
         'title': TitleSlide,
         'content': ContentSlide,
         'section': SectionSlide,
-        'two_column': TwoColumnSlide
+        'two_column': TwoColumnSlide,
+        'quote': QuoteSlide,
+        'stats': StatsSlide
     }
 
     @staticmethod
