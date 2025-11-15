@@ -14,9 +14,11 @@ from ai_generator import generate_with_ai
 import os
 from datetime import datetime
 from dotenv import load_dotenv
+from pathlib import Path
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from .env file in the same directory as this script
+env_path = Path(__file__).parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 # Page config
 st.set_page_config(
@@ -230,17 +232,18 @@ Example for business:
         api_key_from_env = os.getenv('ANTHROPIC_API_KEY')
 
         if api_key_from_env:
-            st.success("✅ API key found in .env file")
+            st.success("✅ API key loaded from .env file")
+            st.caption(f"🔑 Key: {api_key_from_env[:20]}... (hidden)")
             api_key = api_key_from_env
         else:
+            st.warning("⚠️ No API key found in .env file")
+            st.caption("💡 If you just created .env, restart Streamlit with Ctrl+C then `streamlit run app.py`")
             api_key = st.text_input(
                 "Anthropic API Key *",
                 type="password",
                 placeholder="sk-ant-...",
                 help="Get your API key from https://console.anthropic.com/"
             )
-            if api_key:
-                st.caption("💡 Tip: Save your API key in a .env file to avoid entering it each time")
 
     st.divider()
 
