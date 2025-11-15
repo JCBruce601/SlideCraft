@@ -392,18 +392,18 @@ class ContentSlide(BaseSlide):
 class SectionSlide(BaseSlide):
     slide_type = 'section'
     skip_header = True
-    
+
     def _add_background(self):
         left = self.slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, Inches(8), self.layout['height'])
         left.fill.solid()
         left.fill.fore_color.rgb = self.palette['secondary']
         left.line.fill.background()
-        
+
         right = self.slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8), 0, self.layout['width'] - Inches(8), self.layout['height'])
         right.fill.solid()
         right.fill.fore_color.rgb = self.palette['primary']
         right.line.fill.background()
-    
+
     def _add_content(self, data):
         if data.get('section_number'):
             nb = self.slide.shapes.add_textbox(Inches(1.5), Inches(1.5), Inches(2), Inches(1))
@@ -411,7 +411,7 @@ class SectionSlide(BaseSlide):
             nb.text_frame.paragraphs[0].font.size = Pt(120)
             nb.text_frame.paragraphs[0].font.bold = True
             nb.text_frame.paragraphs[0].font.color.rgb = self.palette['accent_light']
-        
+
         tb = self.slide.shapes.add_textbox(Inches(1.5), Inches(3.5), Inches(6), Inches(2))
         tb.text_frame.text = data.get('title', 'Section')
         tb.text_frame.word_wrap = True
@@ -420,13 +420,112 @@ class SectionSlide(BaseSlide):
         tb.text_frame.paragraphs[0].font.bold = True
         tb.text_frame.paragraphs[0].font.color.rgb = RGBColor(255, 255, 255)
 
+class TwoColumnSlide(BaseSlide):
+    slide_type = 'two_column'
+
+    def _add_header(self, data):
+        super()._add_header(data)
+        title_box = self.slide.shapes.add_textbox(Inches(0.9), Inches(0.15), Inches(11), Inches(0.7))
+        tf = title_box.text_frame
+        tf.text = data.get('title', 'Slide Title')
+        tf.paragraphs[0].font.name = self.fonts['heading']
+        tf.paragraphs[0].font.size = Pt(44)
+        tf.paragraphs[0].font.bold = True
+        tf.paragraphs[0].font.color.rgb = RGBColor(255, 255, 255)
+
+    def _add_content(self, data):
+        # Left column background
+        left_bg = self.slide.shapes.add_shape(
+            MSO_SHAPE.ROUNDED_RECTANGLE,
+            self.layout['margins']['left'], self.layout['header_height'] + Inches(0.4),
+            Inches(5.5), Inches(5.6)
+        )
+        left_bg.fill.solid()
+        left_bg.fill.fore_color.rgb = self.palette['light']
+        left_bg.line.fill.background()
+
+        # Right column background
+        right_bg = self.slide.shapes.add_shape(
+            MSO_SHAPE.ROUNDED_RECTANGLE,
+            self.layout['margins']['left'] + Inches(5.9), self.layout['header_height'] + Inches(0.4),
+            Inches(5.5), Inches(5.6)
+        )
+        right_bg.fill.solid()
+        right_bg.fill.fore_color.rgb = self.palette['light']
+        right_bg.line.fill.background()
+
+        # Left column header
+        if data.get('left_header'):
+            left_header_box = self.slide.shapes.add_textbox(
+                self.layout['margins']['left'] + Inches(0.4), self.layout['header_height'] + Inches(0.6),
+                Inches(4.7), Inches(0.4)
+            )
+            lh = left_header_box.text_frame
+            lh.text = data['left_header']
+            lh.paragraphs[0].font.name = self.fonts['heading']
+            lh.paragraphs[0].font.size = Pt(28)
+            lh.paragraphs[0].font.bold = True
+            lh.paragraphs[0].font.color.rgb = self.palette['primary']
+
+        # Right column header
+        if data.get('right_header'):
+            right_header_box = self.slide.shapes.add_textbox(
+                self.layout['margins']['left'] + Inches(6.3), self.layout['header_height'] + Inches(0.6),
+                Inches(4.7), Inches(0.4)
+            )
+            rh = right_header_box.text_frame
+            rh.text = data['right_header']
+            rh.paragraphs[0].font.name = self.fonts['heading']
+            rh.paragraphs[0].font.size = Pt(28)
+            rh.paragraphs[0].font.bold = True
+            rh.paragraphs[0].font.color.rgb = self.palette['primary']
+
+        # Left column content
+        left_content_box = self.slide.shapes.add_textbox(
+            self.layout['margins']['left'] + Inches(0.4), self.layout['header_height'] + Inches(1.2),
+            Inches(4.7), Inches(4.5)
+        )
+        lcf = left_content_box.text_frame
+        lcf.word_wrap = True
+
+        for idx, item in enumerate(data.get('left_items', [])):
+            p = lcf.paragraphs[0] if idx == 0 else lcf.add_paragraph()
+            p.text = item
+            p.font.name = self.fonts['body']
+            p.font.size = Pt(24)
+            p.font.color.rgb = self.palette['text']
+            p.space_after = Pt(14)
+            p.line_spacing = self.layout['line_spacing']
+
+        # Right column content
+        right_content_box = self.slide.shapes.add_textbox(
+            self.layout['margins']['left'] + Inches(6.3), self.layout['header_height'] + Inches(1.2),
+            Inches(4.7), Inches(4.5)
+        )
+        rcf = right_content_box.text_frame
+        rcf.word_wrap = True
+
+        for idx, item in enumerate(data.get('right_items', [])):
+            p = rcf.paragraphs[0] if idx == 0 else rcf.add_paragraph()
+            p.text = item
+            p.font.name = self.fonts['body']
+            p.font.size = Pt(24)
+            p.font.color.rgb = self.palette['text']
+            p.space_after = Pt(14)
+            p.line_spacing = self.layout['line_spacing']
+
 # ============================================================================
 # SLIDE FACTORY
 # ============================================================================
 
 class SlideFactory:
-    SLIDE_TYPES = {'title': TitleSlide, 'content': ContentSlide, 'section': SectionSlide}
-    
+    SLIDE_TYPES = {
+        'title': TitleSlide,
+        'content': ContentSlide,
+        'section': SectionSlide,
+        'two_column': TwoColumnSlide
+    }
+
     @staticmethod
     def create_slide(slide_type, prs, palette, layout, fonts=None, brand_kit=None):
         cls = SlideFactory.SLIDE_TYPES.get(slide_type, ContentSlide)
@@ -509,7 +608,19 @@ class PresentationBuilderPro:
     
     def _save(self):
         ts = datetime.now().strftime('%Y%m%d_%H%M%S')
-        path = f"/mnt/user-data/outputs/presentation_v4pro_{ts}.pptx"
+
+        # Try configured output directory, fallback to local outputs/
+        output_dir = self.config.get('output_dir', None)
+
+        if not output_dir:
+            # Try cloud path, fallback to local
+            if os.path.exists('/mnt/user-data/outputs'):
+                output_dir = '/mnt/user-data/outputs'
+            else:
+                output_dir = os.path.join(os.getcwd(), 'outputs')
+                os.makedirs(output_dir, exist_ok=True)
+
+        path = os.path.join(output_dir, f"presentation_v4pro_{ts}.pptx")
         self.prs.save(path)
         return path
 

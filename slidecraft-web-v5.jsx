@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { FileDown, Palette, Building2, FileText, Sparkles, ChevronRight, Menu, X, Church, Users } from 'lucide-react';
+import { FileDown, Palette, Building2, FileText, Sparkles, ChevronRight, Menu, X, Church, Users, Moon, Sun } from 'lucide-react';
 
 export default function SlideCraftBuilder() {
   const [activeTab, setActiveTab] = useState('quick');
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [selectedTheme, setSelectedTheme] = useState('software_professional');
+  const [darkMode, setDarkMode] = useState(false);
   const [formData, setFormData] = useState({
     topic: '',
     slides: '8',
@@ -67,9 +68,18 @@ export default function SlideCraftBuilder() {
     setResult(null);
 
     try {
+      // Validate inputs
+      if (activeTab === 'quick' && !formData.topic) {
+        throw new Error('Please enter a presentation topic');
+      }
+
+      if (activeTab === 'template' && !selectedTemplate) {
+        throw new Error('Please select a template');
+      }
+
       // Build prompt based on mode
       let prompt = '';
-      
+
       if (activeTab === 'quick') {
         // Quick create mode
         prompt = `Create a professional PowerPoint presentation about "${formData.topic}".
@@ -85,7 +95,7 @@ ${formData.additionalContext}
 Please use the context above to inform the slide content. If there's an agenda or outline, structure the presentation to match it.
 ` : ''}
 
-Use the v4 Pro presentation generator with the selected theme. Include:
+Use the v5 Pro presentation generator with the selected theme. Include:
 - Title slide
 - Agenda/overview${formData.additionalContext ? ' (based on context provided)' : ''}
 - ${parseInt(formData.slides) - 3} content slides with relevant bullet points
@@ -107,87 +117,122 @@ Theme: ${selectedTheme}
 Template data:
 ${Object.entries(templateData).map(([k, v]) => `${k}: ${v}`).join('\n')}
 
-Use the v4 Pro presentation generator with template_library. Populate the template with the provided data and apply the ${selectedTheme} theme.`;
+Use the v5 Pro presentation generator with template_library. Populate the template with the provided data and apply the ${selectedTheme} theme.`;
       }
 
-      // Call Claude API
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      // NOTE: This component is designed to work with a backend API or Streamlit app
+      // For production use, replace this with your backend endpoint
+      // The Streamlit app (app.py) is the recommended way to use this tool
+
+      // Check for environment variable or use local backend
+      const apiEndpoint = process.env.REACT_APP_API_ENDPOINT || '/api/generate';
+
+      const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 4000,
-          messages: [
-            {
-              role: "user",
-              content: prompt
-            }
-          ]
+          mode: activeTab,
+          theme: selectedTheme,
+          formData: activeTab === 'quick' ? formData : templateData,
+          templateId: activeTab === 'template' ? selectedTemplate : null,
+          prompt: prompt
         })
       });
 
       if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+        throw new Error(`API error: ${response.status}. Please ensure the backend is running or use the Streamlit app (app.py) instead.`);
       }
 
       const data = await response.json();
-      const responseText = data.content[0].text;
 
       setResult({
         success: true,
-        message: responseText,
+        message: data.message || 'Presentation generated successfully!',
         mode: activeTab,
         theme: themes.find(t => t.id === selectedTheme)?.name,
-        template: activeTab === 'template' ? templates[Object.keys(templates).find(cat => 
+        template: activeTab === 'template' ? templates[Object.keys(templates).find(cat =>
           templates[cat].some(t => t.id === selectedTemplate)
-        )]?.find(t => t.id === selectedTemplate)?.name : null
+        )]?.find(t => t.id === selectedTemplate)?.name : null,
+        filepath: data.filepath
       });
 
     } catch (error) {
       setResult({
         success: false,
-        error: error.message
+        error: error.message || 'An error occurred while generating the presentation'
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const selectedTemplateObj = selectedTemplate ? 
+  const selectedTemplateObj = selectedTemplate ?
     Object.values(templates).flat().find(t => t.id === selectedTemplate) : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-3 sm:p-6">
+    <div className={`min-h-screen p-3 sm:p-6 transition-colors ${
+      darkMode
+        ? 'bg-gradient-to-br from-gray-900 to-gray-800'
+        : 'bg-gradient-to-br from-blue-50 to-indigo-100'
+    }`}>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
-          <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm mb-3 sm:mb-4">
-            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
-            <span className="text-xs sm:text-sm font-semibold text-indigo-600">v4 Pro</span>
+          <div className="flex justify-between items-start mb-3 sm:mb-4">
+            <div className="flex-1" />
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full shadow-sm ${
+              darkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
+              <span className={`text-xs sm:text-sm font-semibold text-indigo-600`}>v5 Pro</span>
+            </div>
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className={`ml-4 p-2 rounded-full shadow-sm transition-colors ${
+                darkMode
+                  ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
+              aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-2">
+          <h1 className={`text-2xl sm:text-4xl font-bold mb-2 ${
+            darkMode ? 'text-white' : 'text-gray-900'
+          }`}>
             Presentation Generator
           </h1>
-          <p className="text-sm sm:text-base text-gray-600 px-4">
+          <p className={`text-sm sm:text-base px-4 ${
+            darkMode ? 'text-gray-300' : 'text-gray-600'
+          }`}>
             Professional PowerPoint in minutes
           </p>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            10 themes • 9 templates • Free
+          <p className={`text-xs sm:text-sm mt-1 ${
+            darkMode ? 'text-gray-400' : 'text-gray-500'
+          }`}>
+            11 themes • 10 templates • Free
           </p>
         </div>
 
         {/* Main Card */}
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl overflow-hidden">
+        <div className={`rounded-xl sm:rounded-2xl shadow-xl overflow-hidden ${
+          darkMode ? 'bg-gray-800' : 'bg-white'
+        }`}>
           {/* Tabs */}
-          <div className="flex border-b border-gray-200">
+          <div className={`flex border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
             <button
               onClick={() => setActiveTab('quick')}
               className={`flex-1 px-3 sm:px-6 py-3 sm:py-4 text-sm sm:text-base font-semibold transition-all ${
                 activeTab === 'quick'
-                  ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? darkMode
+                    ? 'bg-indigo-900/50 text-indigo-400 border-b-2 border-indigo-500'
+                    : 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600'
+                  : darkMode
+                    ? 'text-gray-400 hover:bg-gray-700'
+                    : 'text-gray-600 hover:bg-gray-50'
               }`}
               role="tab"
               aria-selected={activeTab === 'quick'}
@@ -201,8 +246,12 @@ Use the v4 Pro presentation generator with template_library. Populate the templa
               onClick={() => setActiveTab('template')}
               className={`flex-1 px-3 sm:px-6 py-3 sm:py-4 text-sm sm:text-base font-semibold transition-all ${
                 activeTab === 'template'
-                  ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? darkMode
+                    ? 'bg-indigo-900/50 text-indigo-400 border-b-2 border-indigo-500'
+                    : 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600'
+                  : darkMode
+                    ? 'text-gray-400 hover:bg-gray-700'
+                    : 'text-gray-600 hover:bg-gray-50'
               }`}
               role="tab"
               aria-selected={activeTab === 'template'}
@@ -219,7 +268,9 @@ Use the v4 Pro presentation generator with template_library. Populate the templa
             {activeTab === 'quick' && (
               <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <label htmlFor="topic-input" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label htmlFor="topic-input" className={`block text-sm font-semibold mb-2 ${
+                    darkMode ? 'text-gray-200' : 'text-gray-700'
+                  }`}>
                     What's your presentation about?
                   </label>
                   <input
@@ -228,7 +279,11 @@ Use the v4 Pro presentation generator with template_library. Populate the templa
                     value={formData.topic}
                     onChange={(e) => setFormData({...formData, topic: e.target.value})}
                     placeholder="e.g., Q4 Business Results, Product Launch"
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                      darkMode
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                        : 'bg-white border-gray-300 text-gray-900'
+                    }`}
                     aria-required="true"
                   />
                 </div>
@@ -492,20 +547,38 @@ Or paste notes, outlines, bullet points, etc."
 
         {/* Features Footer */}
         <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-center">
-          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+          <div className={`p-4 sm:p-6 rounded-xl shadow-sm ${
+            darkMode ? 'bg-gray-800' : 'bg-white'
+          }`}>
             <Palette className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-600 mx-auto mb-2" aria-hidden="true" />
-            <div className="text-sm sm:text-base font-semibold text-gray-900">10 Themes</div>
-            <div className="text-xs sm:text-sm text-gray-600">Professional designs</div>
+            <div className={`text-sm sm:text-base font-semibold ${
+              darkMode ? 'text-white' : 'text-gray-900'
+            }`}>11 Themes</div>
+            <div className={`text-xs sm:text-sm ${
+              darkMode ? 'text-gray-400' : 'text-gray-600'
+            }`}>Professional designs</div>
           </div>
-          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+          <div className={`p-4 sm:p-6 rounded-xl shadow-sm ${
+            darkMode ? 'bg-gray-800' : 'bg-white'
+          }`}>
             <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-600 mx-auto mb-2" aria-hidden="true" />
-            <div className="text-sm sm:text-base font-semibold text-gray-900">9 Templates</div>
-            <div className="text-xs sm:text-sm text-gray-600">Quick start options</div>
+            <div className={`text-sm sm:text-base font-semibold ${
+              darkMode ? 'text-white' : 'text-gray-900'
+            }`}>10 Templates</div>
+            <div className={`text-xs sm:text-sm ${
+              darkMode ? 'text-gray-400' : 'text-gray-600'
+            }`}>Quick start options</div>
           </div>
-          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+          <div className={`p-4 sm:p-6 rounded-xl shadow-sm ${
+            darkMode ? 'bg-gray-800' : 'bg-white'
+          }`}>
             <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-600 mx-auto mb-2" aria-hidden="true" />
-            <div className="text-sm sm:text-base font-semibold text-gray-900">Brand Kits</div>
-            <div className="text-xs sm:text-sm text-gray-600">Auto-apply your brand</div>
+            <div className={`text-sm sm:text-base font-semibold ${
+              darkMode ? 'text-white' : 'text-gray-900'
+            }`}>Brand Kits</div>
+            <div className={`text-xs sm:text-sm ${
+              darkMode ? 'text-gray-400' : 'text-gray-600'
+            }`}>Auto-apply your brand</div>
           </div>
         </div>
       </div>
