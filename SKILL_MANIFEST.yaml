@@ -1,0 +1,176 @@
+# SlideCraft Skill Manifest
+# AI-Powered Presentation Generator for Claude Code
+
+skill:
+  name: "SlideCraft"
+  version: "5.0"
+  description: "AI-powered PowerPoint presentation generator with 11 themes, 10 templates, and Claude integration"
+  author: "Your Name"
+  license: "Free for personal and commercial use"
+
+  # Skill metadata
+  category: "productivity"
+  tags:
+    - presentations
+    - powerpoint
+    - ai
+    - claude
+    - streamlit
+    - business
+    - education
+    - sermons
+
+  # Requirements
+  requirements:
+    python_version: ">=3.8"
+    dependencies:
+      - streamlit>=1.28.0
+      - python-pptx>=0.6.21
+      - Pillow>=10.0.0
+      - anthropic>=0.18.0
+      - python-dotenv>=1.0.0
+
+  # Environment setup
+  environment:
+    required:
+      - name: ANTHROPIC_API_KEY
+        description: "Anthropic Claude API key for AI-powered generation"
+        secret: true
+    optional:
+      - name: OUTPUT_DIR
+        description: "Custom output directory for generated presentations"
+        default: "./outputs"
+
+  # Features
+  features:
+    - name: "AI-Powered Generation"
+      description: "Generate presentations from notes using Claude Sonnet 4.5"
+      requires_api_key: true
+
+    - name: "Quick Create"
+      description: "Fast presentation generation with intelligent parsing"
+      requires_api_key: false
+
+    - name: "Template-Based"
+      description: "10 professional templates (sermon, business, education, etc.)"
+      requires_api_key: false
+
+    - name: "Custom Template Upload"
+      description: "Upload and use your own .pptx templates"
+      requires_api_key: false
+
+    - name: "11 Professional Themes"
+      description: "Church, Corporate, Startup, Healthcare, Education, Finance, etc."
+      requires_api_key: false
+
+    - name: "Dark/Light Mode"
+      description: "Toggle between dark and light UI themes"
+      requires_api_key: false
+
+  # Supported slide types
+  slide_types:
+    - title
+    - content
+    - section
+    - two_column
+    - quote
+    - stats
+
+  # Deployment options
+  deployment:
+    local:
+      command: "streamlit run app.py"
+      port: 8501
+      url: "http://localhost:8501"
+
+    cloud:
+      platform: "Streamlit Cloud"
+      url: "https://share.streamlit.io"
+      main_file: "app.py"
+      secrets_required:
+        - ANTHROPIC_API_KEY
+
+    docker:
+      supported: true
+      dockerfile_included: false
+
+  # File structure
+  files:
+    main:
+      - app.py
+      - slidecraft_v5.py
+      - ai_generator.py
+
+    config:
+      - requirements.txt
+      - .env.example
+      - .gitignore
+
+    documentation:
+      - README.md
+      - SKILL_PACKAGE.md
+      - INSTALLATION_GUIDE.md
+      - AI_UPGRADE_PLAN.md
+      - IMPROVEMENTS.md
+
+  # Use cases
+  use_cases:
+    - name: "Sermons"
+      description: "Create engaging sermon presentations from scripture and outlines"
+      example_template: "sunday_sermon"
+
+    - name: "Business Presentations"
+      description: "QBRs, sales pitches, investor decks"
+      example_template: "quarterly_review"
+
+    - name: "Educational Content"
+      description: "Course overviews, lesson plans, training materials"
+      example_template: "course_overview"
+
+    - name: "Marketing"
+      description: "Campaign reviews, product launches"
+      example_template: "product_launch"
+
+    - name: "Government/Nonprofit"
+      description: "Policy briefings, grant proposals"
+      example_template: "policy_briefing"
+
+  # API usage
+  api:
+    provider: "Anthropic"
+    model: "claude-sonnet-4-20250514"
+    features:
+      - Intelligent content structuring
+      - Speaker notes generation
+      - Slide type selection
+      - Content summarization
+
+  # Comparison
+  alternatives:
+    - name: "Gamma.app"
+      pricing: "$8-40/month"
+      advantage: "Free, self-hosted, customizable"
+
+    - name: "Beautiful.ai"
+      pricing: "$12-50/month"
+      advantage: "Free, open source, AI-powered"
+
+    - name: "Canva"
+      pricing: "Freemium"
+      advantage: "Native .pptx export, AI integration"
+
+  # Support
+  support:
+    documentation: "README.md"
+    installation: "INSTALLATION_GUIDE.md"
+    customization: "SKILL_PACKAGE.md"
+    issues: "Check troubleshooting in README.md"
+
+  # Updates and roadmap
+  roadmap:
+    - Feature: "Full custom template integration with AI"
+    - Feature: "Image generation and insertion"
+    - Feature: "Chart and graph creation"
+    - Feature: "Multi-language support"
+    - Feature: "PDF export"
+    - Feature: "Slide animations"
